@@ -22,6 +22,8 @@ router.post(
     { name: 'addressProof', maxCount: 1 },
     { name: 'photo', maxCount: 1 },
     { name: 'signature', maxCount: 1 },
+    { name: 'paymentReceipt', maxCount: 1 },
+    { name: 'receiptFile', maxCount: 1 },
     { name: 'doc1_photo', maxCount: 1 },
     { name: 'doc2_govId', maxCount: 1 },
     { name: 'doc3_eduCert', maxCount: 1 },
@@ -42,6 +44,8 @@ router.post(
     { name: 'addressProof', maxCount: 1 },
     { name: 'photo', maxCount: 1 },
     { name: 'signature', maxCount: 1 },
+    { name: 'paymentReceipt', maxCount: 1 },
+    { name: 'receiptFile', maxCount: 1 },
   ]),
   createApplication
 );

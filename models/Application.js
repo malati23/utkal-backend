@@ -92,6 +92,7 @@ const applicationSchema = new mongoose.Schema(
         addressProofUrl: { type: String, trim: true },
         photoUrl: { type: String, trim: true },
         signatureUrl: { type: String, trim: true },
+        paymentReceiptUrl: { type: String, trim: true },
         additionalDocuments: [
           {
             documentType: { type: String, trim: true },
@@ -100,6 +101,15 @@ const applicationSchema = new mongoose.Schema(
             uploadedAt: { type: Date, default: Date.now },
           },
         ],
+      },
+      paymentDetails: {
+        method: { type: String, trim: true, default: 'UPI (IndusInd Bank QR)' },
+        amount: { type: Number, default: 200 },
+        utrNumber: { type: String, trim: true },
+        receiptUrl: { type: String, trim: true },
+        receiptFileName: { type: String, trim: true },
+        paidAt: { type: Date, default: Date.now },
+        paymentStatus: { type: String, enum: ['pending', 'verified', 'rejected'], default: 'pending' },
       },
       witnessDetails: {
         witness1Name: { type: String, trim: true },

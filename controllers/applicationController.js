@@ -126,6 +126,7 @@ const createApplication = async (req, res) => {
 
     // Extract uploaded files from req.files or pre-uploaded file URLs in req.body
     const reqFiles = req.files || {};
+    const payment = formData.payment || formData.paymentDetails || {};
 
     const idProofUrl = reqFiles.idProof?.[0]
       ? `/uploads/documents/${reqFiles.idProof[0].filename}`
@@ -151,6 +152,18 @@ const createApplication = async (req, res) => {
         ? documents.signatureUrl
         : (typeof documents.signatureFile === 'string' ? documents.signatureFile : ''));
 
+    const paymentReceiptUrl = reqFiles.paymentReceipt?.[0]
+      ? `/uploads/documents/${reqFiles.paymentReceipt[0].filename}`
+      : (reqFiles.receiptFile?.[0]
+        ? `/uploads/documents/${reqFiles.receiptFile[0].filename}`
+        : (typeof payment.receiptUrl === 'string' && payment.receiptUrl
+          ? payment.receiptUrl
+          : (typeof payment.receiptFile === 'string'
+            ? payment.receiptFile
+            : (typeof payment.receiptFile?.previewUrl === 'string'
+              ? payment.receiptFile.previewUrl
+              : (documents.paymentReceiptUrl || '')))));
+
     // Process additional documents array if passed or if extra files uploaded
     let additionalDocs = Array.isArray(documents.additionalDocuments)
       ? [...documents.additionalDocuments]
@@ -175,6 +188,15 @@ const createApplication = async (req, res) => {
       }
     });
 
+    if (paymentReceiptUrl) {
+      additionalDocs.push({
+        documentType: 'Payment Receipt',
+        documentName: '₹200 Statutory Membership Payment Screenshot',
+        documentUrl: paymentReceiptUrl,
+        uploadedAt: new Date(),
+      });
+    }
+
     const sanitizedDocuments = {
       idProofType: documents.idProofType || 'Aadhaar Card',
       idProofUrl: idProofUrl,
@@ -182,6 +204,7 @@ const createApplication = async (req, res) => {
       addressProofUrl: addressProofUrl,
       photoUrl: photoUrl,
       signatureUrl: signatureUrl,
+      paymentReceiptUrl: paymentReceiptUrl,
       additionalDocuments: additionalDocs,
     };
 
@@ -245,6 +268,15 @@ const createApplication = async (req, res) => {
         shareValue: Number(shares.shareValue) || 10,
         processingFee: Number(shares.processingFee) || 100,
         totalContribution: Number(shares.totalContribution) || 200,
+      },
+      paymentDetails: {
+        method: payment.method || payment.paymentMethod || 'UPI (IndusInd Bank QR)',
+        amount: Number(payment.amount) || Number(shares.totalContribution) || 200,
+        utrNumber: payment.utrNumber || payment.utr || 'UPI_ATTACHED',
+        receiptUrl: paymentReceiptUrl,
+        receiptFileName: payment.receiptFileName || payment.receiptFile?.name || 'UPI_Payment_Receipt.png',
+        paymentStatus: 'pending',
+        paidAt: new Date(),
       },
       documentDetails: sanitizedDocuments,
       witnessDetails: {
@@ -808,9 +840,21 @@ const getApplicationDocuments = async (req, res) => {
             });
           }
 
+          const receiptUrl = doc.paymentReceiptUrl || app.paymentDetails?.receiptUrl;
+          if (receiptUrl && !list.some(d => d.documentUrl === receiptUrl)) {
+            list.push({
+              id: `${app._id}-paymentreceipt`,
+              documentType: 'Payment Receipt',
+              documentName: '₹200 Statutory Membership Payment Screenshot',
+              documentUrl: receiptUrl,
+              uploadedAt: app.submittedAt || app.createdAt,
+              verificationStatus: defaultVerification,
+            });
+          }
+
           if (Array.isArray(doc.additionalDocuments)) {
             doc.additionalDocuments.forEach((addDoc, idx) => {
-              if (addDoc.documentUrl) {
+              if (addDoc.documentUrl && !list.some(d => d.documentUrl === addDoc.documentUrl)) {
                 list.push({
                   id: addDoc._id ? addDoc._id.toString() : `${app._id}-add-${idx}`,
                   documentType: addDoc.documentType || 'Additional Document',
