@@ -1,0 +1,151 @@
+const mongoose = require('mongoose');
+
+const applicationSchema = new mongoose.Schema(
+  {
+    applicationId: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+    },
+    memberId: {
+      type: String,
+      sparse: true,
+      trim: true,
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected', 'correction_required'],
+      default: 'pending',
+    },
+    personalDetails: {
+      title: { type: String, trim: true },
+      firstName: { type: String, trim: true },
+      middleName: { type: String, trim: true },
+      lastName: { type: String, trim: true },
+      relationshipPrefix: { type: String, trim: true },
+      fatherLegalName: { type: String, trim: true },
+      dob: { type: String, trim: true },
+      age: { type: String, trim: true },
+      gender: { type: String, trim: true },
+      maritalStatus: { type: String, trim: true },
+      education: { type: String, trim: true },
+      religion: { type: String, trim: true },
+      category: { type: String, trim: true },
+        occupation: { type: String, trim: true },
+        pan: { type: String, trim: true },
+      },
+      contactDetails: {
+        mobile: { type: String, trim: true },
+        altMobile: { type: String, trim: true },
+        email: {
+          type: String,
+          lowercase: true,
+          trim: true,
+          match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email address'],
+        },
+      },
+      addressDetails: {
+        address1: { type: String, trim: true },
+        address2: { type: String, trim: true },
+        villageTown: { type: String, trim: true },
+        district: { type: String, trim: true },
+        state: { type: String, trim: true },
+        pincode: { type: String, trim: true },
+        country: { type: String, trim: true },
+        sameAsResidential: { type: Boolean, default: true },
+        commAddress1: { type: String, trim: true },
+        commAddress2: { type: String, trim: true },
+        commVillageTown: { type: String, trim: true },
+        commDistrict: { type: String, trim: true },
+        commState: { type: String, trim: true },
+        commPincode: { type: String, trim: true },
+        commCountry: { type: String, trim: true },
+      },
+      nomineeDetails: {
+        fullName: { type: String, trim: true },
+        relationship: { type: String, trim: true },
+        dob: { type: String, trim: true },
+        mobile: { type: String, trim: true },
+        address: { type: String, trim: true },
+        sameAsApplicant: { type: Boolean, default: true },
+        isMinor: { type: Boolean, default: false },
+        guardianName: { type: String, trim: true },
+        guardianRelationship: { type: String, trim: true },
+      },
+      membershipDetails: {
+        membershipType: { type: String, trim: true },
+        membershipAmount: { type: String, trim: true },
+        preferredCommunication: { type: String, trim: true },
+        numberOfShares: { type: Number, default: 10 },
+        shareValue: { type: Number, default: 10 },
+        processingFee: { type: Number, default: 100 },
+        totalContribution: { type: Number, default: 200 },
+        branch: { type: String, trim: true },
+        introducer: { type: String, trim: true },
+        empId: { type: String, trim: true },
+      },
+      documentDetails: {
+        idProofType: { type: String, trim: true },
+        idProofUrl: { type: String, trim: true },
+        addressProofType: { type: String, trim: true },
+        addressProofUrl: { type: String, trim: true },
+        photoUrl: { type: String, trim: true },
+        signatureUrl: { type: String, trim: true },
+        additionalDocuments: [
+          {
+            documentType: { type: String, trim: true },
+            documentName: { type: String, trim: true },
+            documentUrl: { type: String, trim: true },
+            uploadedAt: { type: Date, default: Date.now },
+          },
+        ],
+      },
+      witnessDetails: {
+        witness1Name: { type: String, trim: true },
+        witness1Mobile: { type: String, trim: true },
+        witness1Address: { type: String, trim: true },
+        witness1Occupation: { type: String, trim: true },
+        witness1Relationship: { type: String, trim: true },
+        witness2Name: { type: String, trim: true },
+        witness2Mobile: { type: String, trim: true },
+        witness2Address: { type: String, trim: true },
+        witness2Occupation: { type: String, trim: true },
+        witness2Relationship: { type: String, trim: true },
+      },
+      declarationDetails: {
+        confirmInfoTrue: { type: Boolean, default: false },
+        agreeTerms: { type: Boolean, default: false },
+        consentProcessing: { type: Boolean, default: false },
+        signatureName: { type: String, trim: true },
+        declarationDate: { type: String, trim: true },
+      },
+      submittedAt: {
+        type: Date,
+        default: Date.now,
+      },
+      reviewedAt: {
+        type: Date,
+      },
+      reviewedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+      rejectionReason: {
+        type: String,
+        trim: true,
+      },
+      credentialsEmailStatus: {
+        type: String,
+        enum: ['pending', 'sent', 'failed'],
+        default: 'pending',
+      },
+    },
+    {
+      timestamps: true,
+      strict: false,
+    }
+  );
+
+  module.exports =
+    mongoose.models.Application || mongoose.model('Application', applicationSchema);

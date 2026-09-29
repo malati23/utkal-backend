@@ -1,0 +1,8 @@
+node_modules
+uploads
+*.log
+
+# Environment variables
+.env
+.env.*
+!.env.example
