@@ -26,6 +26,9 @@ if (IS_PROD && JWT_SECRET.includes('replace_with_a_secure_random_secret')) {
   console.warn('⚠️ WARNING: Using default JWT_SECRET in production environment! Please set a strong JWT_SECRET in .env.');
 }
 
+const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || 'admin@newutkalfinance.com').trim().toLowerCase();
+const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD || 'Admin@123').trim();
+
 const FRONTEND_URL = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/+$/, '');
 
 // Parse Allowed Origins for CORS
@@ -66,6 +69,8 @@ const env = Object.freeze({
   JWT_EXPIRES_IN,
   FRONTEND_URL,
   ALLOWED_ORIGINS,
+  ADMIN_EMAIL,
+  ADMIN_PASSWORD,
   EMAIL: Object.freeze({
     HOST: EMAIL_HOST,
     PORT: EMAIL_PORT,
