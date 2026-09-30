@@ -796,11 +796,20 @@ const getApplicationDocuments = async (req, res) => {
           const list = [];
           const defaultVerification = app.status === 'approved' ? 'Verified' : app.status === 'rejected' ? 'Rejected' : 'Pending Verification';
 
+          const idType = (doc.idProofType || 'Aadhaar Card').trim();
+          const addrType = (doc.addressProofType || 'Aadhaar Card').trim();
+          const isIdAadhaar = idType.toLowerCase().includes('aadhaar');
+          const isAddrAadhaar = addrType.toLowerCase().includes('aadhaar');
+          const isSameUrl = doc.idProofUrl && doc.addressProofUrl && doc.idProofUrl === doc.addressProofUrl;
+
           if (doc.idProofUrl) {
+            const isCombined = (isIdAadhaar && isAddrAadhaar) || isSameUrl;
             list.push({
               id: `${app._id}-idproof`,
-              documentType: 'Identity Proof',
-              documentName: `${doc.idProofType || 'Government ID'} (ID Proof)`,
+              documentType: isCombined ? 'Identity & Address Proof' : 'Identity Proof',
+              documentName: isCombined
+                ? `${idType} (Identity & Address Proof)`
+                : `${idType} (ID Proof)`,
               documentUrl: doc.idProofUrl,
               uploadedAt: app.submittedAt || app.createdAt,
               verificationStatus: defaultVerification,
@@ -808,14 +817,27 @@ const getApplicationDocuments = async (req, res) => {
           }
 
           if (doc.addressProofUrl) {
-            list.push({
-              id: `${app._id}-addressproof`,
-              documentType: 'Address Proof',
-              documentName: `${doc.addressProofType || 'Address Document'} (Address Proof)`,
-              documentUrl: doc.addressProofUrl,
-              uploadedAt: app.submittedAt || app.createdAt,
-              verificationStatus: defaultVerification,
-            });
+            // Only add separate address proof if it's NOT a duplicate of Aadhaar card / same file URL
+            const isDuplicateAadhaar = isAddrAadhaar && (isIdAadhaar || isSameUrl);
+            if (!doc.idProofUrl) {
+              list.push({
+                id: `${app._id}-addressproof`,
+                documentType: 'Address Proof',
+                documentName: `${addrType || 'Address Document'} (Address Proof)`,
+                documentUrl: doc.addressProofUrl,
+                uploadedAt: app.submittedAt || app.createdAt,
+                verificationStatus: defaultVerification,
+              });
+            } else if (!isDuplicateAadhaar && !list.some(d => d.documentUrl === doc.addressProofUrl)) {
+              list.push({
+                id: `${app._id}-addressproof`,
+                documentType: 'Address Proof',
+                documentName: `${addrType || 'Address Document'} (Address Proof)`,
+                documentUrl: doc.addressProofUrl,
+                uploadedAt: app.submittedAt || app.createdAt,
+                verificationStatus: defaultVerification,
+              });
+            }
           }
 
           if (doc.photoUrl) {
