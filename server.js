@@ -26,8 +26,24 @@ app.use(
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Serve Uploaded Files Statically
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Ensure uploads directory exists on server launch
+const fs = require('fs');
+const uploadsDir = path.join(__dirname, 'uploads/documents');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Serve Uploaded Files Statically with cross-origin headers
+app.use(
+  '/uploads',
+  cors(),
+  express.static(path.join(__dirname, 'uploads'), {
+    setHeaders: (res) => {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    },
+  })
+);
 
 // Test Route: GET /
 app.get('/', (req, res) => {
