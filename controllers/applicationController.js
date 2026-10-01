@@ -439,18 +439,61 @@ const updateApplicationStatus = async (req, res) => {
       });
 
       if (existingUser) {
-        // If user already exists, link and return without creating duplicate
+        // If user already exists, link account and generate fresh login credentials
+        const tempPassword = generateTempPassword(10);
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(tempPassword, salt);
+
+        existingUser.password = hashedPassword;
+        existingUser.mustChangePassword = true;
+        existingUser.applicationId = application._id;
+        if (!existingUser.name || existingUser.name === 'Applicant') {
+          existingUser.name = name;
+        }
+        await existingUser.save();
+
         application.status = 'approved';
         application.memberId = existingUser.memberId;
-        application.reviewedAt = application.reviewedAt || new Date();
+        application.reviewedAt = new Date();
+        application.credentialsEmailStatus = 'pending';
+        await application.save();
+
+        // Dispatch Credentials Email via Nodemailer
+        let emailSent = false;
+        let emailError = null;
+        try {
+          const emailResult = await sendCredentialsEmail({
+            email: email.toLowerCase().trim(),
+            name,
+            applicationId: application.applicationId || application._id.toString(),
+            memberId: existingUser.memberId,
+            tempPassword,
+          });
+
+          emailSent = emailResult.success === true;
+          if (!emailSent && emailResult.error) {
+            emailError = emailResult.error;
+          }
+        } catch (mailErr) {
+          console.error(`Credentials email failed: ${mailErr.message}`);
+          emailError = mailErr.message;
+        }
+
+        // Update application email status
+        application.credentialsEmailStatus = emailSent ? 'sent' : 'failed';
         await application.save();
 
         return res.status(200).json({
           success: true,
-          message: `Application approved. Connected to existing member account for ${email}`,
+          message: emailSent
+            ? `Application approved and credentials emailed to applicant (${email}).`
+            : `Application approved for existing member account (${existingUser.memberId}).`,
           applicationId: application.applicationId || application._id.toString(),
           memberId: existingUser.memberId,
           alreadyExists: true,
+          emailSent,
+          emailError: emailError || undefined,
+          credentialsEmailStatus: application.credentialsEmailStatus,
           application,
           member: {
             _id: existingUser._id,
