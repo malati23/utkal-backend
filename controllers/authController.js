@@ -115,6 +115,7 @@ const loginUser = async (req, res) => {
       success: true,
       message: 'Login successful',
       token,
+      role: user.role || 'member',
       user: {
         _id: user._id,
         memberId: user.memberId,
