@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Application = require('../models/Application');
 const User = require('../models/User');
+const Member = require('../models/Member');
 
 /**
  * Helper to format date into '29 Sep 2026'
@@ -381,6 +382,17 @@ const updateMemberStatus = async (req, res) => {
       user.status = newStatus;
       await user.save();
     }
+
+    // Also update dedicated Member collection
+    await Member.findOneAndUpdate(
+      {
+        $or: [
+          { memberId: id },
+          ...(mongoose.Types.ObjectId.isValid(id) ? [{ _id: id }, { applicationId: id }] : []),
+        ],
+      },
+      { $set: { status: newStatus } }
+    );
 
     return res.status(200).json({
       success: true,

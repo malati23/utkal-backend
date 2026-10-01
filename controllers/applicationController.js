@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 const Application = require('../models/Application');
 const User = require('../models/User');
+const Member = require('../models/Member');
 const { generateTempPassword } = require('../utils/generatePassword');
 const { sendCredentialsEmail } = require('../utils/sendEmail');
 
@@ -483,6 +484,43 @@ const updateApplicationStatus = async (req, res) => {
         application.credentialsEmailStatus = emailSent ? 'sent' : 'failed';
         await application.save();
 
+        // Upsert into dedicated members collection in MongoDB Atlas
+        try {
+          await Member.findOneAndUpdate(
+            { memberId: existingUser.memberId },
+            {
+              $set: {
+                memberId: existingUser.memberId,
+                applicationId: application._id,
+                applicationRefId: application.applicationId || application._id.toString(),
+                userId: existingUser._id,
+                name,
+                email: email.toLowerCase().trim(),
+                mobile,
+                membershipType: application.membershipDetails?.membershipType || 'Associate Member',
+                membershipAmount: application.membershipDetails?.membershipAmount ? Number(application.membershipDetails.membershipAmount) : 200,
+                numberOfShares: application.membershipDetails?.numberOfShares || 10,
+                shareValue: application.membershipDetails?.shareValue || 10,
+                processingFee: application.membershipDetails?.processingFee || 100,
+                totalContribution: application.membershipDetails?.totalContribution || 200,
+                status: existingUser.status || 'active',
+                joiningDate: application.reviewedAt || new Date(),
+                credentialsEmailStatus: application.credentialsEmailStatus,
+                personalDetails: application.personalDetails || {},
+                contactDetails: application.contactDetails || {},
+                addressDetails: application.addressDetails || {},
+                nomineeDetails: application.nomineeDetails || {},
+                membershipDetails: application.membershipDetails || {},
+                documentDetails: application.documentDetails || {},
+                paymentDetails: application.paymentDetails || {},
+              },
+            },
+            { upsert: true, new: true }
+          );
+        } catch (memberColErr) {
+          console.error('Error saving Member collection record:', memberColErr.message);
+        }
+
         return res.status(200).json({
           success: true,
           message: emailSent
@@ -584,6 +622,43 @@ const updateApplicationStatus = async (req, res) => {
       // 8. ONLY mark as sent if Nodemailer succeeded, otherwise failed
       application.credentialsEmailStatus = emailSent ? 'sent' : 'failed';
       await application.save();
+
+      // 9. Save into dedicated members collection in MongoDB Atlas
+      try {
+        await Member.findOneAndUpdate(
+          { memberId },
+          {
+            $set: {
+              memberId,
+              applicationId: application._id,
+              applicationRefId: application.applicationId || application._id.toString(),
+              userId: newMember._id,
+              name,
+              email: email.toLowerCase().trim(),
+              mobile,
+              membershipType: application.membershipDetails?.membershipType || 'Associate Member',
+              membershipAmount: application.membershipDetails?.membershipAmount ? Number(application.membershipDetails.membershipAmount) : 200,
+              numberOfShares: application.membershipDetails?.numberOfShares || 10,
+              shareValue: application.membershipDetails?.shareValue || 10,
+              processingFee: application.membershipDetails?.processingFee || 100,
+              totalContribution: application.membershipDetails?.totalContribution || 200,
+              status: 'active',
+              joiningDate: application.reviewedAt || new Date(),
+              credentialsEmailStatus: application.credentialsEmailStatus,
+              personalDetails: application.personalDetails || {},
+              contactDetails: application.contactDetails || {},
+              addressDetails: application.addressDetails || {},
+              nomineeDetails: application.nomineeDetails || {},
+              membershipDetails: application.membershipDetails || {},
+              documentDetails: application.documentDetails || {},
+              paymentDetails: application.paymentDetails || {},
+            },
+          },
+          { upsert: true, new: true }
+        );
+      } catch (memberColErr) {
+        console.error('Error saving Member collection record:', memberColErr.message);
+      }
 
       // 9. Sanitized Member Response (No password or hash returned)
       const memberResponse = {
