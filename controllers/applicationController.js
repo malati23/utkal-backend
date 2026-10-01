@@ -843,15 +843,26 @@ const uploadDocuments = async (req, res) => {
   try {
     const uploadedFiles = {};
     if (req.files) {
+      const processFile = (file) => {
+        if (file.buffer) {
+          const mime = file.mimetype || 'image/jpeg';
+          return `data:${mime};base64,${file.buffer.toString('base64')}`;
+        }
+        if (file.filename) {
+          return `/uploads/documents/${file.filename}`;
+        }
+        return '';
+      };
+
       if (Array.isArray(req.files)) {
         req.files.forEach((file) => {
-          uploadedFiles[file.fieldname] = `/uploads/documents/${file.filename}`;
+          uploadedFiles[file.fieldname] = processFile(file);
         });
       } else {
         Object.keys(req.files).forEach((fieldname) => {
           const fileArr = req.files[fieldname];
           if (fileArr && fileArr.length > 0) {
-            uploadedFiles[fieldname] = `/uploads/documents/${fileArr[0].filename}`;
+            uploadedFiles[fieldname] = processFile(fileArr[0]);
           }
         });
       }
