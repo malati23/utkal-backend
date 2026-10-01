@@ -783,6 +783,35 @@ const updateApplication = async (req, res) => {
       };
     }
 
+    // Update document details
+    if (updateData.documentDetails || updateData.documents) {
+      const docPayload = updateData.documentDetails || updateData.documents || {};
+      const current = application.documentDetails?.toObject?.() || application.documentDetails || {};
+      application.documentDetails = {
+        ...current,
+        ...docPayload,
+      };
+      // Keep documents field in sync
+      application.documents = {
+        ...current,
+        ...docPayload,
+      };
+    }
+
+    // Update payment details
+    if (updateData.paymentDetails || updateData.payment) {
+      const payPayload = updateData.paymentDetails || updateData.payment || {};
+      const current = application.paymentDetails?.toObject?.() || application.paymentDetails || {};
+      application.paymentDetails = {
+        ...current,
+        ...payPayload,
+      };
+      application.payment = {
+        ...current,
+        ...payPayload,
+      };
+    }
+
     // Flat fields convenience
     if (updateData.pan) {
       if (!application.personalDetails) application.personalDetails = {};
