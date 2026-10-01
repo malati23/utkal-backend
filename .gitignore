@@ -1,8 +1,10 @@
 node_modules
 uploads
+scripts
 *.log
 
 # Environment variables
 .env
 .env.*
 .env.example
+
