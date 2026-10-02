@@ -88,10 +88,23 @@ const applicationSchema = new mongoose.Schema(
       documentDetails: {
         idProofType: { type: String, trim: true },
         idProofUrl: { type: String, trim: true },
+        idProofFile: { type: String, trim: true },
+        idProof: { type: String, trim: true },
+        doc2_govId: { type: String, trim: true },
         addressProofType: { type: String, trim: true },
         addressProofUrl: { type: String, trim: true },
+        addressProofFile: { type: String, trim: true },
+        addressProof: { type: String, trim: true },
         photoUrl: { type: String, trim: true },
+        photoFile: { type: String, trim: true },
+        photo: { type: String, trim: true },
+        doc1_photo: { type: String, trim: true },
         signatureUrl: { type: String, trim: true },
+        signatureFile: { type: String, trim: true },
+        signature: { type: String, trim: true },
+        doc3_eduCert: { type: String, trim: true },
+        doc4_birthCert: { type: String, trim: true },
+        doc5_utility: { type: String, trim: true },
         paymentReceiptUrl: { type: String, trim: true },
         additionalDocuments: [
           {

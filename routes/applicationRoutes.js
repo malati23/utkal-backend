@@ -46,6 +46,13 @@ router.post(
     { name: 'signature', maxCount: 1 },
     { name: 'paymentReceipt', maxCount: 1 },
     { name: 'receiptFile', maxCount: 1 },
+    { name: 'doc1_photo', maxCount: 1 },
+    { name: 'doc2_govId', maxCount: 1 },
+    { name: 'doc3_eduCert', maxCount: 1 },
+    { name: 'doc4_birthCert', maxCount: 1 },
+    { name: 'doc5_utility', maxCount: 1 },
+    { name: 'panCard', maxCount: 1 },
+    { name: 'incomeCert', maxCount: 1 },
   ]),
   createApplication
 );
