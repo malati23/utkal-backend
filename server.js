@@ -22,9 +22,9 @@ app.use(
   })
 );
 
-// Request Body Parsing Middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Request Body Parsing Middleware (Allow higher limits for KYC base64 images and documents)
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Ensure uploads directory exists on server launch
 const fs = require('fs');

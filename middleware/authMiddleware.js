@@ -16,6 +16,17 @@ const protect = async (req, res, next) => {
       token = req.headers.authorization.split(' ')[1];
       const decoded = jwt.verify(token, env.JWT_SECRET);
 
+      if (decoded.id === 'admin-root' || decoded.role === 'admin') {
+        req.user = {
+          _id: 'admin-root',
+          name: 'Administrator',
+          email: decoded.email || env.ADMIN_EMAIL || 'admin@newutkalfinance.com',
+          role: 'admin',
+          status: 'active',
+        };
+        return next();
+      }
+
       const user = await User.findById(decoded.id).select('-password');
 
       if (!user) {
