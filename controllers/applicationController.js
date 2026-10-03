@@ -116,118 +116,91 @@ const createApplication = async (req, res) => {
     }
 
     // Extract uploaded files from req.files or pre-uploaded file URLs in req.body
-    const reqFiles = req.files || {};
+    const reqFiles = req.files || [];
     const payment = parseIfJson(formData.payment || formData.paymentDetails);
 
-    const idProofUrl = reqFiles.idProof?.[0]
-      ? `/uploads/documents/${reqFiles.idProof[0].filename}`
-      : (reqFiles.doc2_govId?.[0]
-        ? `/uploads/documents/${reqFiles.doc2_govId[0].filename}`
-        : (reqFiles.idProofFile?.[0]
-          ? `/uploads/documents/${reqFiles.idProofFile[0].filename}`
-          : (typeof documents.idProofUrl === 'string' && documents.idProofUrl
-            ? documents.idProofUrl
-            : (typeof documents.idProofFile === 'string' && documents.idProofFile
-              ? documents.idProofFile
-              : (typeof documents.idProof === 'string' && documents.idProof
-                ? documents.idProof
-                : (typeof documents.doc2_govId === 'string' && documents.doc2_govId
-                  ? documents.doc2_govId
-                  : (typeof formData.idProofUrl === 'string' && formData.idProofUrl
-                    ? formData.idProofUrl
-                    : (typeof formData.idProofFile === 'string' && formData.idProofFile
-                      ? formData.idProofFile
-                      : (typeof formData.idProof === 'string' && formData.idProof
-                        ? formData.idProof
-                        : (typeof formData.doc2_govId === 'string' && formData.doc2_govId
-                          ? formData.doc2_govId
-                          : ''))))))))));
+    const getFileUrl = (fieldNames = []) => {
+      const names = Array.isArray(fieldNames) ? fieldNames : [fieldNames];
+      if (Array.isArray(reqFiles)) {
+        const found = reqFiles.find((f) => f && names.includes(f.fieldname));
+        if (found && found.filename) return `/uploads/documents/${found.filename}`;
+      } else if (reqFiles && typeof reqFiles === 'object') {
+        for (const name of names) {
+          if (Array.isArray(reqFiles[name]) && reqFiles[name][0]?.filename) {
+            return `/uploads/documents/${reqFiles[name][0].filename}`;
+          }
+          if (reqFiles[name]?.filename) {
+            return `/uploads/documents/${reqFiles[name].filename}`;
+          }
+        }
+      }
+      return null;
+    };
 
-    const addressProofUrl = reqFiles.addressProof?.[0]
-      ? `/uploads/documents/${reqFiles.addressProof[0].filename}`
-      : (reqFiles.addressProofFile?.[0]
-        ? `/uploads/documents/${reqFiles.addressProofFile[0].filename}`
-        : (typeof documents.addressProofUrl === 'string' && documents.addressProofUrl
-          ? documents.addressProofUrl
-          : (typeof documents.addressProofFile === 'string' && documents.addressProofFile
-            ? documents.addressProofFile
-            : (typeof documents.addressProof === 'string' && documents.addressProof
-              ? documents.addressProof
-              : (typeof formData.addressProofUrl === 'string' && formData.addressProofUrl
-                ? formData.addressProofUrl
-                : (typeof formData.addressProofFile === 'string' && formData.addressProofFile
-                  ? formData.addressProofFile
-                  : ''))))));
+    const idProofUrl =
+      getFileUrl(['idProof', 'doc2_govId', 'idProofFile']) ||
+      (typeof documents.idProofUrl === 'string' && documents.idProofUrl) ||
+      (typeof documents.idProofFile === 'string' && documents.idProofFile) ||
+      (typeof documents.idProof === 'string' && documents.idProof) ||
+      (typeof documents.doc2_govId === 'string' && documents.doc2_govId) ||
+      (typeof formData.idProofUrl === 'string' && formData.idProofUrl) ||
+      (typeof formData.idProofFile === 'string' && formData.idProofFile) ||
+      (typeof formData.idProof === 'string' && formData.idProof) ||
+      (typeof formData.doc2_govId === 'string' && formData.doc2_govId) ||
+      '';
 
-    const photoUrl = reqFiles.photo?.[0]
-      ? `/uploads/documents/${reqFiles.photo[0].filename}`
-      : (reqFiles.doc1_photo?.[0]
-        ? `/uploads/documents/${reqFiles.doc1_photo[0].filename}`
-        : (reqFiles.photoFile?.[0]
-          ? `/uploads/documents/${reqFiles.photoFile[0].filename}`
-          : (typeof documents.photoUrl === 'string' && documents.photoUrl
-            ? documents.photoUrl
-            : (typeof documents.photoFile === 'string' && documents.photoFile
-              ? documents.photoFile
-              : (typeof documents.photo === 'string' && documents.photo
-                ? documents.photo
-                : (typeof formData.photoUrl === 'string' && formData.photoUrl
-                  ? formData.photoUrl
-                  : (typeof formData.photoFile === 'string' && formData.photoFile
-                    ? formData.photoFile
-                    : '')))))));
+    const addressProofUrl =
+      getFileUrl(['addressProof', 'addressProofFile']) ||
+      (typeof documents.addressProofUrl === 'string' && documents.addressProofUrl) ||
+      (typeof documents.addressProofFile === 'string' && documents.addressProofFile) ||
+      (typeof documents.addressProof === 'string' && documents.addressProof) ||
+      (typeof formData.addressProofUrl === 'string' && formData.addressProofUrl) ||
+      (typeof formData.addressProofFile === 'string' && formData.addressProofFile) ||
+      '';
 
-    const signatureUrl = reqFiles.signature?.[0]
-      ? `/uploads/documents/${reqFiles.signature[0].filename}`
-      : (reqFiles.signatureFile?.[0]
-        ? `/uploads/documents/${reqFiles.signatureFile[0].filename}`
-        : (typeof documents.signatureUrl === 'string' && documents.signatureUrl
-          ? documents.signatureUrl
-          : (typeof documents.signatureFile === 'string' && documents.signatureFile
-            ? documents.signatureFile
-            : (typeof documents.signature === 'string' && documents.signature
-              ? documents.signature
-              : (typeof formData.signatureUrl === 'string' && formData.signatureUrl
-                ? formData.signatureUrl
-                : (typeof formData.signatureFile === 'string' && formData.signatureFile
-                  ? formData.signatureFile
-                  : ''))))));
+    const photoUrl =
+      getFileUrl(['photo', 'doc1_photo', 'photoFile']) ||
+      (typeof documents.photoUrl === 'string' && documents.photoUrl) ||
+      (typeof documents.photoFile === 'string' && documents.photoFile) ||
+      (typeof documents.photo === 'string' && documents.photo) ||
+      (typeof formData.photoUrl === 'string' && formData.photoUrl) ||
+      (typeof formData.photoFile === 'string' && formData.photoFile) ||
+      '';
 
-    const paymentReceiptUrl = reqFiles.paymentReceipt?.[0]
-      ? `/uploads/documents/${reqFiles.paymentReceipt[0].filename}`
-      : (reqFiles.receiptFile?.[0]
-        ? `/uploads/documents/${reqFiles.receiptFile[0].filename}`
-        : (typeof payment.receiptUrl === 'string' && payment.receiptUrl
-          ? payment.receiptUrl
-          : (typeof payment.receiptFile === 'string'
-            ? payment.receiptFile
-            : (typeof payment.receiptFile?.previewUrl === 'string'
-              ? payment.receiptFile.previewUrl
-              : (documents.paymentReceiptUrl || '')))));
+    const signatureUrl =
+      getFileUrl(['signature', 'signatureFile']) ||
+      (typeof documents.signatureUrl === 'string' && documents.signatureUrl) ||
+      (typeof documents.signatureFile === 'string' && documents.signatureFile) ||
+      (typeof documents.signature === 'string' && documents.signature) ||
+      (typeof formData.signatureUrl === 'string' && formData.signatureUrl) ||
+      (typeof formData.signatureFile === 'string' && formData.signatureFile) ||
+      '';
 
-    const doc3Url = reqFiles.doc3_eduCert?.[0]
-      ? `/uploads/documents/${reqFiles.doc3_eduCert[0].filename}`
-      : (typeof documents.doc3_eduCert === 'string' && documents.doc3_eduCert
-        ? documents.doc3_eduCert
-        : (typeof formData.doc3_eduCert === 'string' && formData.doc3_eduCert
-          ? formData.doc3_eduCert
-          : ''));
+    const paymentReceiptUrl =
+      getFileUrl(['paymentReceipt', 'receiptFile']) ||
+      (typeof payment.receiptUrl === 'string' && payment.receiptUrl) ||
+      (typeof payment.receiptFile === 'string' && payment.receiptFile) ||
+      (typeof payment.receiptFile?.previewUrl === 'string' && payment.receiptFile.previewUrl) ||
+      documents.paymentReceiptUrl ||
+      '';
 
-    const doc4Url = reqFiles.doc4_birthCert?.[0]
-      ? `/uploads/documents/${reqFiles.doc4_birthCert[0].filename}`
-      : (typeof documents.doc4_birthCert === 'string' && documents.doc4_birthCert
-        ? documents.doc4_birthCert
-        : (typeof formData.doc4_birthCert === 'string' && formData.doc4_birthCert
-          ? formData.doc4_birthCert
-          : ''));
+    const doc3Url =
+      getFileUrl(['doc3_eduCert', 'doc3_eduCertFile']) ||
+      (typeof documents.doc3_eduCert === 'string' && documents.doc3_eduCert) ||
+      (typeof formData.doc3_eduCert === 'string' && formData.doc3_eduCert) ||
+      '';
 
-    const doc5Url = reqFiles.doc5_utility?.[0]
-      ? `/uploads/documents/${reqFiles.doc5_utility[0].filename}`
-      : (typeof documents.doc5_utility === 'string' && documents.doc5_utility
-        ? documents.doc5_utility
-        : (typeof formData.doc5_utility === 'string' && formData.doc5_utility
-          ? formData.doc5_utility
-          : ''));
+    const doc4Url =
+      getFileUrl(['doc4_birthCert', 'doc4_birthCertFile']) ||
+      (typeof documents.doc4_birthCert === 'string' && documents.doc4_birthCert) ||
+      (typeof formData.doc4_birthCert === 'string' && formData.doc4_birthCert) ||
+      '';
+
+    const doc5Url =
+      getFileUrl(['doc5_utility', 'doc5_utilityFile']) ||
+      (typeof documents.doc5_utility === 'string' && documents.doc5_utility) ||
+      (typeof formData.doc5_utility === 'string' && formData.doc5_utility) ||
+      '';
 
     // Process additional documents array (filter out any duplicates of named slots)
     let additionalDocs = (Array.isArray(documents.additionalDocuments)
@@ -959,31 +932,34 @@ const updateApplication = async (req, res) => {
  */
 const uploadDocuments = async (req, res) => {
   try {
+    const rawFiles = req.files || [];
     const uploadedFiles = {};
-    if (req.files) {
-      const processFile = (file) => {
-        if (file.buffer) {
-          const mime = file.mimetype || 'image/jpeg';
-          return `data:${mime};base64,${file.buffer.toString('base64')}`;
-        }
-        if (file.filename) {
-          return `/uploads/documents/${file.filename}`;
-        }
-        return '';
-      };
 
-      if (Array.isArray(req.files)) {
-        req.files.forEach((file) => {
-          uploadedFiles[file.fieldname] = processFile(file);
-        });
-      } else {
-        Object.keys(req.files).forEach((fieldname) => {
-          const fileArr = req.files[fieldname];
-          if (fileArr && fileArr.length > 0) {
-            uploadedFiles[fieldname] = processFile(fileArr[0]);
-          }
-        });
+    const registerFile = (fieldname, file) => {
+      if (!file) return;
+      const fileUrl = file.filename
+        ? `/uploads/documents/${file.filename}`
+        : (file.buffer ? `data:${file.mimetype || 'image/jpeg'};base64,${file.buffer.toString('base64')}` : '');
+      if (fileUrl) {
+        uploadedFiles[fieldname] = fileUrl;
+        if (fieldname === 'doc1_photo') uploadedFiles['photo'] = fileUrl;
+        if (fieldname === 'photo') uploadedFiles['doc1_photo'] = fileUrl;
+        if (fieldname === 'doc2_govId') uploadedFiles['idProof'] = fileUrl;
+        if (fieldname === 'idProof') uploadedFiles['doc2_govId'] = fileUrl;
+        if (fieldname === 'receiptFile') uploadedFiles['paymentReceipt'] = fileUrl;
+        if (fieldname === 'paymentReceipt') uploadedFiles['receiptFile'] = fileUrl;
       }
+    };
+
+    if (Array.isArray(rawFiles)) {
+      rawFiles.forEach((file) => {
+        registerFile(file.fieldname, file);
+      });
+    } else if (rawFiles && typeof rawFiles === 'object') {
+      Object.entries(rawFiles).forEach(([fieldname, fileArr]) => {
+        const file = Array.isArray(fileArr) ? fileArr[0] : fileArr;
+        registerFile(fieldname, file);
+      });
     }
 
     return res.status(200).json({
@@ -1397,4 +1373,5 @@ module.exports = {
   uploadDocuments,
   resendMemberCredentials,
 };
+
 

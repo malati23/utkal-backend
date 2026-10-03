@@ -15,47 +15,13 @@ const {
 router.get('/documents', getApplicationDocuments);
 
 // POST /api/applications/upload-documents - Upload application documents
-router.post(
-  '/upload-documents',
-  upload.fields([
-    { name: 'idProof', maxCount: 1 },
-    { name: 'addressProof', maxCount: 1 },
-    { name: 'photo', maxCount: 1 },
-    { name: 'signature', maxCount: 1 },
-    { name: 'paymentReceipt', maxCount: 1 },
-    { name: 'receiptFile', maxCount: 1 },
-    { name: 'doc1_photo', maxCount: 1 },
-    { name: 'doc2_govId', maxCount: 1 },
-    { name: 'doc3_eduCert', maxCount: 1 },
-    { name: 'doc4_birthCert', maxCount: 1 },
-    { name: 'doc5_utility', maxCount: 1 },
-  ]),
-  uploadDocuments
-);
+router.post('/upload-documents', upload.any(), uploadDocuments);
 
 // GET /api/applications - Get all membership applications
 router.get('/', getApplications);
 
 // POST /api/applications - Submit new membership application
-router.post(
-  '/',
-  upload.fields([
-    { name: 'idProof', maxCount: 1 },
-    { name: 'addressProof', maxCount: 1 },
-    { name: 'photo', maxCount: 1 },
-    { name: 'signature', maxCount: 1 },
-    { name: 'paymentReceipt', maxCount: 1 },
-    { name: 'receiptFile', maxCount: 1 },
-    { name: 'doc1_photo', maxCount: 1 },
-    { name: 'doc2_govId', maxCount: 1 },
-    { name: 'doc3_eduCert', maxCount: 1 },
-    { name: 'doc4_birthCert', maxCount: 1 },
-    { name: 'doc5_utility', maxCount: 1 },
-    { name: 'panCard', maxCount: 1 },
-    { name: 'incomeCert', maxCount: 1 },
-  ]),
-  createApplication
-);
+router.post('/', upload.any(), createApplication);
 
 // PUT & PATCH /api/applications/:id - Update/Edit application details
 router.put('/:id', updateApplication);
