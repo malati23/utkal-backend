@@ -1,6 +1,8 @@
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
+const path = require('path');
+const fs = require('fs');
 const Application = require('../models/Application');
 const User = require('../models/User');
 const Member = require('../models/Member');
@@ -1364,6 +1366,52 @@ const resendMemberCredentials = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Serve document file directly through API (bypasses web server static rewrite issues)
+ * @route   GET /api/applications/files/:filename
+ * @access  Public
+ */
+const serveDocumentFile = (req, res) => {
+  try {
+    const filename = path.basename(req.params.filename || '');
+    if (!filename) {
+      return res.status(400).json({ success: false, message: 'Filename is required' });
+    }
+
+    const filePath = path.join(__dirname, '../uploads/documents', filename);
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({
+        success: false,
+        message: 'Document file not found on server',
+      });
+    }
+
+    const ext = path.extname(filename).toLowerCase();
+    const mimeTypes = {
+      '.pdf': 'application/pdf',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.png': 'image/png',
+      '.webp': 'image/webp',
+      '.gif': 'image/gif',
+      '.svg': 'image/svg+xml',
+    };
+
+    const contentType = mimeTypes[ext] || 'application/octet-stream';
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    return res.sendFile(filePath);
+  } catch (error) {
+    console.error('Error streaming document file:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve document file',
+    });
+  }
+};
+
 module.exports = {
   createApplication,
   getApplications,
@@ -1372,6 +1420,8 @@ module.exports = {
   getApplicationDocuments,
   uploadDocuments,
   resendMemberCredentials,
+  serveDocumentFile,
 };
+
 
 

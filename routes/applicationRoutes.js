@@ -9,7 +9,11 @@ const {
   getApplicationDocuments,
   uploadDocuments,
   resendMemberCredentials,
+  serveDocumentFile,
 } = require('../controllers/applicationController');
+
+// GET /api/applications/files/:filename - Stream document directly through API (bypasses static web server rewrite bugs)
+router.get('/files/:filename', serveDocumentFile);
 
 // GET /api/applications/documents - Get all real document records from MongoDB
 router.get('/documents', getApplicationDocuments);
