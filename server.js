@@ -72,6 +72,32 @@ app.use('/api/applications', applicationRoutes);
 app.use('/api/members', memberRoutes);
 app.use('/api/auth', authRoutes);
 
+// Serve Frontend Production Build if present on Hostinger
+const clientDistPaths = [
+  path.join(__dirname, '../frontend/dist'),
+  path.join(__dirname, 'dist'),
+  path.join(__dirname, 'public'),
+];
+
+let activeDistPath = null;
+for (const p of clientDistPaths) {
+  if (fs.existsSync(p)) {
+    activeDistPath = p;
+    break;
+  }
+}
+
+if (activeDistPath) {
+  console.log(`Serving static frontend build from: ${activeDistPath}`);
+  app.use(express.static(activeDistPath));
+  // Fallback to index.html for React SPA routing
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
+      return next();
+    }
+    res.sendFile(path.join(activeDistPath, 'index.html'));
+  });
+}
 
 // Centralized Error Handling Middleware
 app.use((err, req, res, next) => {
